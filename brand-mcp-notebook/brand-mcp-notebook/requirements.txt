@@ -1,0 +1,6 @@
+msal
+requests
+flask
+dotenv
+notebook
+fastmcp
