@@ -1,0 +1,14 @@
+@import '@zeiss/beyond-online-react/dist/main.css';
+@import 'react-datepicker/dist/react-datepicker.css';
+
+body {
+  margin: 0;
+}
+
+select {
+  background-image: none;
+}
+
+ol {
+  padding-inline-start: 0;
+}

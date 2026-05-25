@@ -1,0 +1,39 @@
+{
+  "name": "beyond-online.example.vitejs",
+  "version": "2.0.0",
+  "scripts": {
+    "analyse": "sh list-imports.sh",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@zeiss/beyond-online-react": "3.21.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.15.0",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "@vitejs/plugin-react": "^4.0.0-beta.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.38.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.3.4",
+    "postcss": "^8.4.31",
+    "postcss-import": "^15.1.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.0",
+    "vite-bundle-visualizer": "^1.0.1"
+  },
+  "packageManager": "yarn@4.9.4"
+}
