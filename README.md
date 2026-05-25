@@ -1,242 +1,460 @@
+<h1 align="center">OpenAI Codex CLI</h1>
+<p align="center">Lightweight coding agent that runs in your terminal</p>
 
-## About CODEX
+<p align="center"><code>npm i -g @openai/codex</code></p>
 
-OpenAI’s Codex is a software engineering agent launched in May 2025 that integrates with ChatGPT (for Pro, Team, and Enterprise users) and with developer workflows through an open‑source Codex CLI. It’s powered a user-specified LLM, and works best with OpenAI’s o3 model, and is trained on large amounts of real‑world code and programming workflows. Codex can interpret natural language prompts like “fix this bug” or “write tests for this function,” then run tasks in isolated environments with access to your repository. It can generate pull requests, execute tests and linters, perform static analysis, and propose structured code changes—all in parallel, effectively acting like a highly efficient AI coding assistant.
+> [!IMPORTANT]
+> This is the documentation for the _legacy_ TypeScript implementation of the Codex CLI. It has been superseded by the _Rust_ implementation. See the [README in the root of the Codex repository](https://github.com/openai/codex/blob/main/README.md) for details.
+
+![Codex demo GIF using: codex "explain this codebase to me"](../.github/demo.gif)
+
+---
+
+<details>
+<summary><strong>Table of contents</strong></summary>
+
+<!-- Begin ToC -->
+
+- [Experimental technology disclaimer](#experimental-technology-disclaimer)
+- [Quickstart](#quickstart)
+- [Why Codex?](#why-codex)
+- [Security model & permissions](#security-model--permissions)
+  - [Platform sandboxing details](#platform-sandboxing-details)
+- [System requirements](#system-requirements)
+- [CLI reference](#cli-reference)
+- [Memory & project docs](#memory--project-docs)
+- [Non-interactive / CI mode](#non-interactive--ci-mode)
+- [Tracing / verbose logging](#tracing--verbose-logging)
+- [Recipes](#recipes)
+- [Installation](#installation)
+- [Configuration guide](#configuration-guide)
+  - [Basic configuration parameters](#basic-configuration-parameters)
+  - [Custom AI provider configuration](#custom-ai-provider-configuration)
+  - [History configuration](#history-configuration)
+  - [Configuration examples](#configuration-examples)
+  - [Full configuration example](#full-configuration-example)
+  - [Custom instructions](#custom-instructions)
+  - [Environment variables setup](#environment-variables-setup)
+- [FAQ](#faq)
+- [Zero data retention (ZDR) usage](#zero-data-retention-zdr-usage)
+- [Codex open source fund](#codex-open-source-fund)
+- [Contributing](#contributing)
+  - [Development workflow](#development-workflow)
+  - [Git hooks with Husky](#git-hooks-with-husky)
+  - [Debugging](#debugging)
+  - [Writing high-impact code changes](#writing-high-impact-code-changes)
+  - [Opening a pull request](#opening-a-pull-request)
+  - [Review process](#review-process)
+  - [Community values](#community-values)
+  - [Getting help](#getting-help)
+  - [Contributor license agreement (CLA)](#contributor-license-agreement-cla)
+    - [Quick fixes](#quick-fixes)
+  - [Releasing `codex`](#releasing-codex)
+  - [Alternative build options](#alternative-build-options)
+    - [Nix flake development](#nix-flake-development)
+- [Security & responsible AI](#security--responsible-ai)
+- [License](#license)
+
+<!-- End ToC -->
+
+</details>
+
+---
+
+## Experimental technology disclaimer
+
+Codex CLI is an experimental project under active development. It is not yet stable, may contain bugs, incomplete features, or undergo breaking changes. We're building it in the open with the community and welcome:
+
+- Bug reports
+- Feature requests
+- Pull requests
+- Good vibes
+
+Help us improve by filing issues or submitting PRs (see the section below for how to contribute)!
+
+## Quickstart
+
+Installing on a MAC 
 
 
-### GenAI Company Guidelines
+cd codex/codex-cli
 
-Please use GenAI within ZEISS! to help you, we have published an ever growing and changing number of GenAI trainings on curioz, about best practices, employee guidelines, the EU AI act, and prompt engineering. We *strongly reccommend* that go there and check them out before continuing.
-https://zeiss.csod.com/ui/lms-learner-search/search?query=genai
+# Enable corepack
+corepack enable
 
-
-
-### Why is it useful CODEX
-
-Codex is useful because it dramatically speeds up development by automating repetitive or boilerplate tasks, freeing human developers to focus on higher‑level design, architecture, and problem‑solving. It’s also a powerful educational tool, helping new programmers by explaining code, suggesting fixes, and boosting learning outcomes without undermining long‑term skill retention. Practical use cases include test generation, debugging, documentation support, code refactoring, and integration with GitHub or command‑line workflows. In essence, Codex functions as an AI teammate, handling the grunt work and letting developers concentrate on the creative and strategic aspects of software engineering.
+# Install dependencies and build
+pnpm install
+pnpm build
 
 
-## Contributing to this codebase
+```
 
-### Bi-yearly ish updates from the maintainer team
-This codebase will be synched occasionally with the public github version of codex, https://github.com/openai/codex . We download it, remove some unnesssary scaffolding, host it here: https://zeiss.ghe.com/ZDP/codex-llmlite/actions
- and run it though ZEISS security checks, the outcomes of which you can see here. (if you have access).
+</details>
 
-https://zeiss.app.blackduck.com/api/projects/aa7daf42-28bb-4d02-9b30-fac90c17e023/versions/c538a989-4f0e-4a56-96d8-613416ef44d3/components?filter=bomInclusion%3Afalse&filter=bomMatchInclusion%3Afalse&filter=bomMatchReviewStatus%3Areviewed&filter=securityRisk%3Ahigh&filter=securityRisk%3Acritical&filter=securityRisk%3ACRITICAL&limit=100&offset=0
- 
+---
 
-### user-submitted pull requests
+## Configuration guide
 
-If you want make changes, or find bugs to squish, then you can a) make a pull request on the official https://github.com/openai/codex  page, and at some point, if accepted them will be merged with this version, or b) submit a pull request. We might be slow responding to it. If it is really critical, please reach out to the maintainer team.
+Codex configuration files can be placed in the `~/.codex/` directory, supporting both YAML and JSON formats.
 
-### Maintainer Team
-Raffaella Capasso
-Ben Hoyle
-Reza Norouzian
+### Basic configuration parameters
 
+| Parameter           | Type    | Default    | Description                      | Available Options                                                                              |
+| ------------------- | ------- | ---------- | -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `model`             | string  | `o4-mini`  | AI model to use                  | Any model name supporting OpenAI API                                                           |
+| `approvalMode`      | string  | `suggest`  | AI assistant's permission mode   | `suggest` (suggestions only)<br>`auto-edit` (automatic edits)<br>`full-auto` (fully automatic) |
+| `fullAutoErrorMode` | string  | `ask-user` | Error handling in full-auto mode | `ask-user` (prompt for user input)<br>`ignore-and-continue` (ignore and proceed)               |
+| `notify`            | boolean | `true`     | Enable desktop notifications     | `true`/`false`                                                                                 |
 
+### Custom AI provider configuration
 
-## Installation Instructions
+In the `providers` object, you can configure multiple AI service providers. Each provider requires the following parameters:
 
-If you need debug help, use this assistant: [OpenGPT Assistant](https://www.opengpt-assistants.zeiss.com/assistant/811839d9-ef5a-42b4-86dd-c455a1499b40)
+| Parameter | Type   | Description                             | Example                       |
+| --------- | ------ | --------------------------------------- | ----------------------------- |
+| `name`    | string | Display name of the provider            | `"OpenAI"`                    |
+| `baseURL` | string | API service URL                         | `"https://api.openai.com/v1"` |
+| `envKey`  | string | Environment variable name (for API key) | `"OPENAI_API_KEY"`            |
 
+### History configuration
 
-### Update Your SSL Certificates
+In the `history` object, you can configure conversation history settings:
 
-#### Obtaining Cert Files
+| Parameter           | Type    | Description                                            | Example Value |
+| ------------------- | ------- | ------------------------------------------------------ | ------------- |
+| `maxSize`           | number  | Maximum number of history entries to save              | `1000`        |
+| `saveHistory`       | boolean | Whether to save history                                | `true`        |
+| `sensitivePatterns` | array   | Patterns of sensitive information to filter in history | `[]`          |
 
-You might need to update your certificate files. SSL errors are the typical reason to do this. To do this follow this link
-https://zeisspki.zeiss.com/cert/  and get the Carl-Zeiss-AG-Root-CA.crt file.
+### Configuration examples
 
+1. YAML format (save as `~/.codex/config.yaml`):
 
+```yaml
+model: o4-mini
+approvalMode: suggest
+fullAutoErrorMode: ask-user
+notify: true
+```
 
-### Installing CODEX on Windows
+2. JSON format (save as `~/.codex/config.json`):
 
+```json
+{
+  "model": "o4-mini",
+  "approvalMode": "suggest",
+  "fullAutoErrorMode": "ask-user",
+  "notify": true
+}
+```
 
-1. Get nvm for Windows: [nvm-windows GitHub](https://github.com/coreybutler/nvm-windows/releases)
-2. Run the following commands:
-   ```bash
-   nvm install 22.10.0 --strict-ssl=false
-   nvm use 22
+### Full configuration example
+
+Below is a comprehensive example of `config.json` with multiple custom providers:
+
+```json
+{
+  "model": "o4-mini",
+  "provider": "openai",
+  "providers": {
+    "openai": {
+      "name": "OpenAI",
+      "baseURL": "https://api.openai.com/v1",
+      "envKey": "OPENAI_API_KEY"
+    },
+    "azure": {
+      "name": "AzureOpenAI",
+      "baseURL": "https://YOUR_PROJECT_NAME.openai.azure.com/openai",
+      "envKey": "AZURE_OPENAI_API_KEY"
+    },
+
+  },
+  "history": {
+    "maxSize": 1000,
+    "saveHistory": true,
+    "sensitivePatterns": []
+  }
+}
+```
+
+### Custom instructions
+
+You can create a `~/.codex/AGENTS.md` file to define custom guidance for the agent:
+
+```markdown
+- Always respond with emojis
+- Only use git commands when explicitly requested
+```
+
+### Environment variables setup
+
+For each AI provider, you need to set the corresponding API key in your environment variables. For example:
+
+```bash
+# OpenAI
+export OPENAI_API_KEY="your-api-key-here"
+
+# Azure OpenAI
+export AZURE_OPENAI_API_KEY="your-azure-api-key-here"
+export AZURE_OPENAI_API_VERSION="2025-04-01-preview" (Optional)
+
+# OpenRouter
+export OPENROUTER_API_KEY="your-openrouter-key-here"
+
+# Similarly for other providers
+```
+
+---
+
+## FAQ
+
+<details>
+<summary>OpenAI released a model called Codex in 2021 - is this related?</summary>
+
+In 2021, OpenAI released Codex, an AI system designed to generate code from natural language prompts. That original Codex model was deprecated as of March 2023 and is separate from the CLI tool.
+
+</details>
+
+<details>
+<summary>Which models are supported?</summary>
+
+Any model available with [Responses API](https://platform.openai.com/docs/api-reference/responses). The default is `o4-mini`, but pass `--model gpt-4.1` or set `model: gpt-4.1` in your config file to override.
+
+</details>
+<details>
+<summary>Why does <code>o3</code> or <code>o4-mini</code> not work for me?</summary>
+
+It's possible that your [API account needs to be verified](https://help.openai.com/en/articles/10910291-api-organization-verification) in order to start streaming responses and seeing chain of thought summaries from the API. If you're still running into issues, please let us know!
+
+</details>
+
+<details>
+<summary>How do I stop Codex from editing my files?</summary>
+
+Codex runs model-generated commands in a sandbox. If a proposed command or file change doesn't look right, you can simply type **n** to deny the command or give the model feedback.
+
+</details>
+<details>
+<summary>Does it work on Windows?</summary>
+
+Not directly. It requires [Windows Subsystem for Linux (WSL2)](https://learn.microsoft.com/en-us/windows/wsl/install) - Codex has been tested on macOS and Linux with Node 22.
+
+</details>
+
+---
+
+## Zero data retention (ZDR) usage
+
+Codex CLI **does** support OpenAI organizations with [Zero Data Retention (ZDR)](https://platform.openai.com/docs/guides/your-data#zero-data-retention) enabled. If your OpenAI organization has Zero Data Retention enabled and you still encounter errors such as:
+
+```
+OpenAI rejected the request. Error details: Status: 400, Code: unsupported_parameter, Type: invalid_request_error, Message: 400 Previous response cannot be used for this organization due to Zero Data Retention.
+```
+
+You may need to upgrade to a more recent version with: `npm i -g @openai/codex@latest`
+
+---
+
+## Codex open source fund
+
+We're excited to launch a **$1 million initiative** supporting open source projects that use Codex CLI and other OpenAI models.
+
+- Grants are awarded up to **$25,000** API credits.
+- Applications are reviewed **on a rolling basis**.
+
+**Interested? [Apply here](https://openai.com/form/codex-open-source-fund/).**
+
+---
+
+## Contributing
+
+This project is under active development and the code will likely change pretty significantly. We'll update this message once that's complete!
+
+More broadly we welcome contributions - whether you are opening your very first pull request or you're a seasoned maintainer. At the same time we care about reliability and long-term maintainability, so the bar for merging code is intentionally **high**. The guidelines below spell out what "high-quality" means in practice and should make the whole process transparent and friendly.
+
+### Development workflow
+
+- Create a _topic branch_ from `main` - e.g. `feat/interactive-prompt`.
+- Keep your changes focused. Multiple unrelated fixes should be opened as separate PRs.
+- Use `pnpm test:watch` during development for super-fast feedback.
+- We use **Vitest** for unit tests, **ESLint** + **Prettier** for style, and **TypeScript** for type-checking.
+- Before pushing, run the full test/type/lint suite:
+
+### Git hooks with Husky
+
+This project uses [Husky](https://typicode.github.io/husky/) to enforce code quality checks:
+
+- **Pre-commit hook**: Automatically runs lint-staged to format and lint files before committing
+- **Pre-push hook**: Runs tests and type checking before pushing to the remote
+
+These hooks help maintain code quality and prevent pushing code with failing tests. For more details, see [HUSKY.md](./HUSKY.md).
+
+```bash
+pnpm test && pnpm run lint && pnpm run typecheck
+```
+
+- If you have **not** yet signed the Contributor License Agreement (CLA), add a PR comment containing the exact text
+
+  ```text
+  I have read the CLA Document and I hereby sign the CLA
+  ```
+
+  The CLA-Assistant bot will turn the PR status green once all authors have signed.
+
+```bash
+# Watch mode (tests rerun on change)
+pnpm test:watch
+
+# Type-check without emitting files
+pnpm typecheck
+
+# Automatically fix lint + prettier issues
+pnpm lint:fix
+pnpm format:fix
+```
+
+### Debugging
+
+To debug the CLI with a visual debugger, do the following in the `codex-cli` folder:
+
+- Run `pnpm run build` to build the CLI, which will generate `cli.js.map` alongside `cli.js` in the `dist` folder.
+- Run the CLI with `node --inspect-brk ./dist/cli.js` The program then waits until a debugger is attached before proceeding. Options:
+  - In VS Code, choose **Debug: Attach to Node Process** from the command palette and choose the option in the dropdown with debug port `9229` (likely the first option)
+  - Go to <chrome://inspect> in Chrome and find **localhost:9229** and click **trace**
+
+### Writing high-impact code changes
+
+1. **Start with an issue.** Open a new one or comment on an existing discussion so we can agree on the solution before code is written.
+2. **Add or update tests.** Every new feature or bug-fix should come with test coverage that fails before your change and passes afterwards. 100% coverage is not required, but aim for meaningful assertions.
+3. **Document behaviour.** If your change affects user-facing behaviour, update the README, inline help (`codex --help`), or relevant example projects.
+4. **Keep commits atomic.** Each commit should compile and the tests should pass. This makes reviews and potential rollbacks easier.
+
+### Opening a pull request
+
+- Fill in the PR template (or include similar information) - **What? Why? How?**
+- Run **all** checks locally (`npm test && npm run lint && npm run typecheck`). CI failures that could have been caught locally slow down the process.
+- Make sure your branch is up-to-date with `main` and that you have resolved merge conflicts.
+- Mark the PR as **Ready for review** only when you believe it is in a merge-able state.
+
+### Review process
+
+1. One maintainer will be assigned as a primary reviewer.
+2. We may ask for changes - please do not take this personally. We value the work, we just also value consistency and long-term maintainability.
+3. When there is consensus that the PR meets the bar, a maintainer will squash-and-merge.
+
+### Community values
+
+- **Be kind and inclusive.** Treat others with respect; we follow the [Contributor Covenant](https://www.contributor-covenant.org/).
+- **Assume good intent.** Written communication is hard - err on the side of generosity.
+- **Teach & learn.** If you spot something confusing, open an issue or PR with improvements.
+
+### Getting help
+
+If you run into problems setting up the project, would like feedback on an idea, or just want to say _hi_ - please open a Discussion or jump into the relevant issue. We are happy to help.
+
+Together we can make Codex CLI an incredible tool. **Happy hacking!** :rocket:
+
+### Contributor license agreement (CLA)
+
+All contributors **must** accept the CLA. The process is lightweight:
+
+1. Open your pull request.
+2. Paste the following comment (or reply `recheck` if you've signed before):
+
+   ```text
+   I have read the CLA Document and I hereby sign the CLA
    ```
-3. Open CMD as admin
-4. Navigate to the `codex/codex-cli` directory:
-   ```bash
-   cd codex/codex-cli
-   ```
-5. Enable corepack:
-   ```bash
-   corepack enable
-   corepack prepare pnpm@latest --activate
-   ```
 
-**Important Note:** If this command does not work, it is most likely related to certificate issues. Please follow this [guide to fix certificate issues](https://zeissprod.service-now.com/it4u?id=cz_kb_article&sys_id=3cbb5e43479f5a10ae9a4e3a516d4313), downloading the Zscaler root Certificate in .crt format and performing the steps described in the NPM section.
+3. The CLA-Assistant bot records your signature in the repo and marks the status check as passed.
 
-6. Install dependencies and build:
-   ```bash
-   pnpm install
-   pnpm build
-   ```
+No special Git commands, email attachments, or commit footers required.
 
-### Set Up Environment Variables (Windows)
+#### Quick fixes
 
-1. Create a codex.bat file with this content:
-```
-@echo off
-set OPENAI_BASE_URL=<YOUR_OPENAI_BASE_URL>
-set OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-set OPENAI_API_TYPE=azure
-set YOURPATHTOCODEX=<YOUR_CODEX_PATH>
-node %YOURPATHTOCODEX%\codex\codex-cli\bin\codex.js --approval-mode suggest --model gpt-5-mini
-```
+| Scenario          | Command                                          |
+| ----------------- | ------------------------------------------------ |
+| Amend last commit | `git commit --amend -s --no-edit && git push -f` |
 
-**Note:** Replace `<YOUR_OPENAI_BASE_URL>` and `<YOUR_OPENAI_API_KEY>` with the actual values. If you do not have these keys, please get in touch with us to obtain them. Also replace `<YOUR_CODEX_PATH>` with your actual path to the codex folder.
+The **DCO check** blocks merges until every commit in the PR carries the footer (with squash this is just the one).
 
-2. Add the path to the folder containing `codex.bat` to your `PATH`.
-- Go to **System Environment Variables** → **PATH** → **Edit** → **New**, and paste the folder path
-- For example, if you created `codex.bat` in the `codex-llmlite` folder itself, use:
-```
-C:\Users\YOURNAME\codex-llmlite
-```
+### Releasing `codex`
 
-You have now completed the installation steps! Skip the Mac-specific instructions below and proceed directly to [Running CODEX](#running-codex).
+To publish a new version of the CLI you first need to stage the npm package. A
+helper script in `codex-cli/scripts/` does all the heavy lifting. Inside the
+`codex-cli` folder run:
 
-## Installing CODEX on Linux/Mac
-
-1. Unzip CODEX and navigate to the `codex/` directory.
-2. Follow the build instructions in the terminal.
-
-
-#### Installing Cert Files 
-
-Assuming you got the Carl-Zeiss-AG-Root-CA.crt file from above.
-
-
-Run the following command to update your SSL certificates:
 ```bash
-cat /usr/local/share/ca-certificates/Carl-Zeiss-AG-Root-CA.crt >> /etc/ssl/certs/ca-certificates.crt
+# Classic, JS implementation that includes small, native binaries for Linux sandboxing.
+pnpm stage-release
+
+# Optionally specify the temp directory to reuse between runs.
+RELEASE_DIR=$(mktemp -d)
+pnpm stage-release --tmp "$RELEASE_DIR"
+
+# "Fat" package that additionally bundles the native Rust CLI binaries for
+# Linux. End-users can then opt-in at runtime by setting CODEX_RUST=1.
+pnpm stage-release --native
 ```
 
-### Start Installing CODEX -- newer and maintained Rust version
+Go to the folder where the release is staged and verify that it works as intended. If so, run the following from the temp folder:
 
-1. Navigate to the `codex/codex-rs` directory:
-   ```bash
-   cd codex/codex-rs
-   ```
-2. Install rust:
+```
+cd "$RELEASE_DIR"
+npm publish
+```
 
-   ```bash
-curl https://sh.rustup.rs -sSf | sh
-source $HOME/.cargo/env
-rustup default stable
-   ```
+### Alternative build options
 
+#### Nix flake development
 
-3. Install dependencies and build:
-   ```bash
-   cargo build --release
-   ```
+Prerequisite: Nix >= 2.4 with flakes enabled (`experimental-features = nix-command flakes` in `~/.config/nix/nix.conf`).
 
-#### The binary should be here after build:
+Enter a Nix development shell:
+
 ```bash
-%> ./target/release/codex --version
+# Use either one of the commands according to which implementation you want to work with
+nix develop .#codex-cli # For entering codex-cli specific shell
+nix develop .#codex-rs # For entering codex-rs specific shell
 ```
 
-4. Adding Ben's instruction set, and setting the config files
-in ~/.codex/ copy the instructions.md file and config.toml file
+This shell includes Node.js, installs dependencies, builds the CLI, and provides a `codex` command alias.
 
-then in ~/.zprofile set a environment shortcut:
+Build and run the CLI directly:
 
--- either use short-term (hacky but fast) credentials
 ```bash
-alias codex1='\
-  ZEISS_LITELLM_GATEWAY_KEY="<Ask Ben>" \
-  PATH_TO_CODEX-RS/target/release/codex --profile litellm  '
+# Use either one of the commands according to which implementation you want to work with
+nix build .#codex-cli # For building codex-cli
+nix build .#codex-rs # For building codex-rs
+./result/bin/codex --help
 ```
 
-or if using the GenAI platform to get your API keys, which is the preferred and longer term, stable, and scalable solution.
+Run the CLI via the flake app:
+
 ```bash
-alias codex1='\
-  GENAI_PLATFORM_URL="<Ask Sladjan>" \
-  GENAI_PLATFORM_API_KEY="<Ask Sladjan>" \
-  PATH_TO_CODEX-RS/target/release/codex --profile genai_platform  '
+# Use either one of the commands according to which implementation you want to work with
+nix run .#codex-cli # For running codex-cli
+nix run .#codex-rs # For running codex-rs
 ```
 
-then run codex from the command line:
+Use direnv with flakes
+
+If you have direnv installed, you can use the following `.envrc` to automatically enter the Nix shell when you `cd` into the project directory:
+
 ```bash
-%> codex1
+cd codex-rs
+echo "use flake ../flake.nix#codex-cli" >> .envrc && direnv allow
+cd codex-cli
+echo "use flake ../flake.nix#codex-rs" >> .envrc && direnv allow
 ```
 
+---
 
+## Security & responsible AI
 
+Have you discovered a vulnerability or have concerns about model output? Please e-mail **security@openai.com** and we will respond promptly.
 
-#### Using a different LLM provider
-You can now set your LLM provider to be a local version of OLLAMA or DeepSeek or OSS. only do this if you know what you are doing, llmlight/ directory can help you.
+---
 
+## License
 
-
-## Running CODEX
-
-Navigate to any directory and in your terminal run:
-```bash
-codex
-
-```
-
-## Does and Dont's
-
-- **Does**
-  - Route everything through the company gateway (your proxy/litellm/ingress) and company-hosted models only. Block raw direct calls to public endpoints unless explicitly approved. (See Azure OpenAI privacy + architecture best practices.) 
-  - Lock down networking: use VNets/private endpoints, RBAC, and least-privilege access; prefer “on your data” with per-index ACLs. 
-  - Keep Codex up to date and track its changelog for behavior/security tweaks that affect workflows, pull this from the innerSource repo.
-  - Check out good practices online. 
-  - Ask codex what it can do, when you open it in a repo!
-
-- **Dont's**
-  - Don’t run Codex in Full-Auto with network on sensitive repos by default; don’t let it write outside the workspace without explicit approval.
-  - Don’t grant sudo/admin or let Codex modify OS/global config; keep it sandboxed to the project.
-  - Don’t let Codex commit straight to main or publish artifacts; require PRs, reviewers, and CI security gates.
-  - Don’t enable open internet tooling (package upgrades, curl, wget) without pinning versions/lockfiles and reviewing diffs.
-  - Don’t bypass the company proxy or talk directly to public OpenAI endpoints from dev laptops. Use the sanctioned enterprise/Azure route.
-  - Don’t paste secrets/PII/regulatory data (customers, medical, export-controlled, etc.) into prompts or chat—Codex doesn’t need your prod tokens to write a unit test.
-
-
-Use Codex approval modes wisely: keep it in Read-only/Chat (IDE) or non-Auto when you’re in sensitive repos; only grant network or out-of-workspace access when necessary and explicit.
-
-## Approval Modes
-
-Choose the approval mode based on your comfort level. Start with lower approval trust and adjust as you gain confidence.
-
-- **Suggest (default):**
-  - May do without asking: Read any file in your repo.
-  - Needs approval for: All file writes/patches & any shell commands.
-  - When to use: You’re feeling cautious or working in uncharted code territory.
-
-- **Auto-Edit:**
-  - May do without asking: Read and apply-patch writes to files.
-  - Needs approval for: All shell/Bash commands.
-  - When to use: You trust CODEX to rewrite code but don’t want it running random commands.
-
-- **Full-Auto:**
-  - May do without asking: Read/write files and execute shell commands.
-  - Sandbox guards:
-    - Network disabled (no surprise curl downloads).
-    - Confined to your current working directory (and temp/cache dirs).
-  - When to use: You’re in a safe, version-controlled sandbox and want zero friction.
-
-## Additional Resources
-
-- For writing a product specification, use this assistant tool: [OpenGPT Assistant](https://www.opengpt-assistants.zeiss.com/assistant/bbc4afb2-9f94-435a-9ac5-9fb18815f0ed)
-
-## Admin Information
-
-Navigate to the `llmlite/` directory and log in to Azure:
-```bash
-az login
-az acr login --name zdpgenaidevcontainer
-```
-
-Build and push the Docker image:
-```bash
-docker buildx build --platform linux/amd64 -t zdpgenaidevcontainer.azurecr.io/litellm-proxy:v4 -f Dockerfile . --push
-```
+This repository is licensed under the [Apache-2.0 License](LICENSE).
