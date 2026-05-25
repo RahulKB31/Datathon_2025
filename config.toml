@@ -1,0 +1,97 @@
+# ~/.codex/config.toml
+# Opinionated, team-friendly defaults for Python backends + React/Node frontends.
+
+# --- Core model + behavior ----------------------------------------------------
+model_provider = "azure"                  
+model = "gpt-5"                            # Alias served by LiteLLM
+model_reasoning_effort = "high"            # "none" | "medium" | "high"
+model_reasoning_summary = "auto"           # "none" | "auto"
+preferred_auth_method = "apikey"           # Avoids web sign-in stealing priority later
+approval_policy = "on-request"             # Ask before running/altering stuff
+
+sandbox_mode = "workspace-write"           # Read/write in repo, nothing outside
+system_instruction = "/Users/ben.hoyle/.codex/instructions.md"
+
+# Enable Codex’s built-in web search tool (works in TUI and codex-exec)
+[tools]
+web_search = false
+
+# --- Providers ----------------------------------------------------------------
+
+# --- Providers ---------------------------------------------------------------
+[model_providers.azure]
+name         = "Azure OpenAI"
+# IMPORTANT: include `/openai` on Azure; Codex will append `/responses`
+base_url     = "https://ai-zdpdtxr1hub826396060772.openai.azure.com/openai"
+env_key      = "AZURE_OPENAI_API_KEY"
+wire_api     = "responses"
+query_params = { api-version = "2025-04-01-preview" }
+
+# LiteLLM proxy
+[model_providers.openai_zeiss]
+name     = "OpenAI-ZEISS"
+model = "gpt-5-mini" 
+base_url = "https://llmlite-zeiss-c9a6dybrbabyf3dq.westeurope-01.azurewebsites.net"
+env_key  = "ZEISS_LITELLM_GATEWAY_KEY"                # Keep the key in env, not plaintext
+
+# --- Profiles 
+[profiles.litellm]
+model_provider = "openai_zeiss"
+name     = "litellm"
+model = "gpt-5-mini"  
+base_url = "https://llmlite-zeiss-c9a6dybrbabyf3dq.westeurope-01.azurewebsites.net"
+env_key  = "ZEISS_LITELLM_GATEWAY_KEY"  
+
+
+# --- Profiles 
+[profiles.local_litellm]
+model_provider = "local_litellm"
+name     = "litellm"
+env_key  = "OPENAI_API_KEY"  
+
+
+[model_providers.local_litellm]
+name     = "litellm"
+base_url = "http://127.0.0.1:4000"
+env_key  = "OPENAI_API_KEY"  
+model = "gpt-5"  
+
+
+[model_providers.genai_platform]
+name         = "ZEISS Azure GenAIPlatform"
+# IMPORTANT: include `/openai` on Azure; Codex will append `/responses`
+base_url     = "https://api.genai.zeiss.com/openai"
+env_key      = "GENAI_API_KEY"
+wire_api     = "responses"
+query_params = { api-version = "2025-04-01-preview" }
+
+
+# --- Profiles 
+[profiles.genai_platform]
+model_provider = "genai_platform"
+name     = "genai_platform"
+model = "gpt-5"  
+base_url = "https://api.genai.zeiss.com/openai"
+env_key  = "GENAI_API_KEY"  
+
+
+
+[profiles.azure-direct]
+model_provider = "azure"
+model = "gpt-5"                            # Your Azure deployment name if different
+model_reasoning_effort = "medium"
+model_reasoning_summary = "auto"
+
+# --- Trust levels per project (lets Codex run without nagging in known repos) --
+projects = { "/Users/ben.hoyle/Documents/*" = { trust_level = "trusted" } }
+
+# --- MCP servers (optional power-ups) -----------------------------------------
+# Example: start an MCP via npx; replace with whatever you use.
+# [mcp_servers.context7]
+# command = "npx"
+# args    = ["-y", "@upstash/context7-mcp", "--api-key", "$CONTEXT7_API_KEY"]
+
+
+# Always allow web lookups when coding (docs, APIs)
+[profiles.strict-ci.tools]
+web_search = false
