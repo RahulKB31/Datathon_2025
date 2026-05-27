@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "beyond-online": {
+      "url": "https://api.dev.genai-preview.zeiss.com/beyond-mcp/mcp",
+      "type": "http",
+      "headers": {
+        "Ocp-Apim-Subscription-Key": "984f728bbae84635a654ee8d1a27b6bb"
+      }
+    },
+    "figma_remote": {
+      "url": "https://api.genai.zeiss.com/figma-mcp/mcp",
+      "type": "http",
+      "headers": {"Ocp-Apim-Subscription-Key": "e1c37b8916d64b76a7b96b2c297d0e02"}
+    }
+  }
+}
